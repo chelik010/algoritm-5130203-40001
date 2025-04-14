@@ -5,66 +5,84 @@
 
 using namespace std;
 
-FinancialTransaction::FinancialTransaction(double amt) : amount(amt) {}
+FinancialTransaction::FinancialTransaction(double amt) : amount(amt)
+{}
 
-void FinancialTransaction::setAmount(double amt) {
+void FinancialTransaction::setAmount(double amt)
+{
     amount = amt;
 }
 
-double FinancialTransaction::getAmount() const {
+double FinancialTransaction::getAmount() const
+{
     return amount;
 }
 
-void FinancialTransaction::print_transaction() const {
+void FinancialTransaction::print_transaction() const
+{
     cout << "Сумма транзакции: $" << fixed << setprecision(2) << amount << endl;
 }
 
-FinancialTransaction::~FinancialTransaction() {}
+FinancialTransaction::~FinancialTransaction()
+{}
 
-Deposit::Deposit(double amt, double bal) : FinancialTransaction(amt), balance(bal) {}
+Deposit::Deposit(double amt, double bal) : FinancialTransaction(amt), balance(bal)
+{}
 
-void Deposit::process() {
+void Deposit::process()
+{
     balance += amount;
 }
 
-double Deposit::getBalance() const {
+double Deposit::getBalance() const
+{
     return balance;
 }
 
-void Deposit::print_transaction() const {
+void Deposit::print_transaction() const
+{
     cout << "Транзакция по депозиту" << endl;
     FinancialTransaction::print_transaction();
     cout << "Новый баланс: $" << fixed << setprecision(2) << balance << endl;
 }
 
 Credit::Credit(double amt, double rate, char t, int m)
-    : FinancialTransaction(amt), interest_rate(rate), type(t), months(m), total_interest(0.0) {}
+    : FinancialTransaction(amt), interest_rate(rate), type(t), months(m), total_interest(0.0)
+{}
 
-void Credit::set_interest_rate(double rate) {
+void Credit::set_interest_rate(double rate)
+{
     interest_rate = rate;
 }
 
-void Credit::set_type(char t) {
+void Credit::set_type(char t)
+{
     type = t;
 }
 
-void Credit::set_months(int m) {
+void Credit::set_months(int m)
+{
     months = m;
 }
 
-double Credit::get_months() const {
+double Credit::get_months() const
+{
     return months;
 }
 
-void Credit::process() {
-    if (type == 'A') {
+void Credit::process()
+{
+    if (type == 'A')
+{
         total_interest = amount + (amount * interest_rate * months) / 100.0;
-    } else if (type == 'B') {
+    } else if (type == 'B')
+{
         total_interest = amount * pow(1 + interest_rate / 100.0, months);
     }
 }
 
-void Credit::print_transaction() const {
+void Credit::print_transaction() const
+{
     cout << "Транзакция по кредиту" << endl;
     FinancialTransaction::print_transaction();
     cout << "Тип: " << type << endl;

@@ -3,7 +3,8 @@
 
 using namespace std;
 
-int main() {
+int main()
+{
     double amount, rate;
     int months;
     char type;

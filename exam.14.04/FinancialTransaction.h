@@ -1,7 +1,8 @@
 #ifndef FINANCIALTRANSACTION_H
 #define FINANCIALTRANSACTION_H
 
-class FinancialTransaction {
+class FinancialTransaction
+{
 protected:
     double amount;
 
@@ -14,7 +15,8 @@ public:
     virtual ~FinancialTransaction();
 };
 
-class Deposit : public FinancialTransaction {
+class Deposit : public FinancialTransaction
+{
 private:
     double balance;
 
@@ -25,7 +27,8 @@ public:
     void print_transaction() const override;
 };
 
-class Credit : public FinancialTransaction {
+class Credit : public FinancialTransaction
+{
 private:
     double interest_rate;
     char type;
@@ -42,4 +45,4 @@ public:
     void print_transaction() const override;
 };
 
-#endif // FINANCIALTRANSACTION_H
+#endif
