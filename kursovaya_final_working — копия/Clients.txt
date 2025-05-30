@@ -1,0 +1,3 @@
+C001 Алексей Standard 900
+C002 Мария Gold 5100
+C003 Иван Platinum 10000
