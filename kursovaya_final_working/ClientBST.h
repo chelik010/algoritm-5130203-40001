@@ -1,9 +1,10 @@
-#ifndef CLIENTBST_H
-#define CLIENTBST_H
+#ifndef CLIENT_BST_H
+#define CLIENT_BST_H
 
-#include "Client.h"
 #include <map>
 #include <string>
+#include "Client.h"
+#include "Wallet.h"
 
 class ClientBST {
 private:
@@ -12,12 +13,12 @@ private:
 public:
     void addClient(Client* client);
     Client* findClientById(const std::string& id);
-    Client* findClientByWalletId(const std::string& walletId);
     Wallet* findWalletById(const std::string& walletId);
-    const std::map<std::string, Client*>& getAllClients() const;
+    Client* findClientByWalletId(const std::string& walletId);
 
+    const std::map<std::string, Client*>& getAllClients() const;
     void saveToFile(const std::string& filename) const;
-    void loadFromFile(const std::string& filename);
+
 };
 
 #endif

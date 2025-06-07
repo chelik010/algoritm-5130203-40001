@@ -5,12 +5,24 @@
 
 class StandardClient : public Client {
 public:
-    StandardClient(const std::string& id, const std::string& name, double balance);
+    StandardClient(const std::string& id, const std::string& name)
+        : Client(id, name) {}
 
-    double calculateCommission(double amount) const override;
-    double getMaxTransactionLimit() const override;
-    std::string getType() const override;
-    std::string getBenefits() const override;
+    double calculateCommission(double amount) const override {
+        return amount * 0.05;
+    }
+
+    double getMaxTransactionLimit() const override {
+        return 1000.0;
+    }
+
+    std::string getBenefits() const override {
+        return "Standard benefits";
+    }
+
+    std::string getType() const override {
+        return "Standard";
+    }
 };
 
 #endif

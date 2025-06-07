@@ -1,113 +1,219 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <map>
 #include "ClientBST.h"
 #include "TransactionList.h"
 #include "StandardClient.h"
 #include "GoldClient.h"
 #include "PlatinumClient.h"
+#include "Transaction.h"
+#include "Wallet.h"
+
+bool isValidTransactionId(const std::string& id) {
+    return id.length() >= 3 && std::all_of(id.begin(), id.end(), ::isalnum);
+}
+
+bool transactionExists(const TransactionList& txList, const std::string& id) {
+    return txList.findTransactionById(id) != nullptr;
+}
+
+void loadClients(const std::string& filename, ClientBST& bst) {
+    std::ifstream file(filename);
+    std::string id, name, type, walletId;
+    double balance;
+
+    while (file >> id >> name >> type >> walletId >> balance) {
+        Client* client = bst.findClientById(id);
+        if (!client) {
+            if (type == "Standard")
+                client = new StandardClient(id, name);
+            else if (type == "Gold")
+                client = new GoldClient(id, name);
+            else if (type == "Platinum")
+                client = new PlatinumClient(id, name);
+            else
+                continue;
+            bst.addClient(client);
+        }
+
+        Wallet* wallet = new Wallet(walletId, id, balance);
+        client->addWallet(wallet);
+    }
+}
+
+
+void saveClients(const std::string& filename, const std::map<std::string, Client*>& clientMap) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "❌ Не удалось открыть " << filename << " для записи!\n";
+        return;
+    }
+
+    for (const auto& [id, client] : clientMap) {
+        std::string type;
+
+        // Упрощённая проверка типа клиента
+        if (client->getType() == "Standard") type = "Standard";
+        else if (client->getType() == "Gold") type = "Gold";
+        else if (client->getType() == "Platinum") type = "Platinum";
+        else type = "Unknown";
+
+        for (Wallet* wallet : client->getWallets()) {
+            file << client->getId() << " "
+                 << client->getName() << " "
+                 << type << " "
+                 << wallet->getId() << " "
+                 << wallet->getBalance() << "\n";
+        }
+    }
+
+    std::cout << "✅ Клиенты сохранены в файл " << filename << "\n";
+}
+
+
+
+void loadTransactions(const std::string& filename, TransactionList& txList) {
+    std::ifstream file(filename);
+    std::string txId, from, to;
+    double amount, fee;
+
+    while (file >> txId >> from >> to >> amount >> fee) {
+        txList.addTransaction(new Transaction(txId, from, to, amount, fee));
+    }
+}
+
+void saveTransactions(const std::string& filename, const TransactionList& txList) {
+    std::ofstream file(filename);
+    for (auto tx : txList.getAllTransactions()) {
+        file << tx->getId() << " " << tx->getSenderWalletId() << " "
+             << tx->getReceiverWalletId() << " " << tx->getAmount() << " "
+             << tx->getFee() << "\n";
+    }
+}
 
 int main() {
     ClientBST clients;
     TransactionList txList;
 
-    std::string clientFile = "Clients.txt";
-    std::string txFile = "Blockchain_transactions.txt";
+    loadClients("Clients.txt", clients);
+    loadTransactions("Blockchain_transactions.txt", txList);
 
-    clients.loadFromFile(clientFile);
-    txList.loadFromFile(txFile);
-
-    while (true) {
-        std::cout << "\n1. Создать клиента\n2. Провести транзакцию\n3. Показать всех клиентов\n4. Показать все транзакции\n5. Выход\n> ";
-        int choice;
+    int choice;
+    do {
+        std::cout << "\n===== БЛОКЧЕЙН-МЕНЮ =====\n"
+                  << "1. Показать клиентов\n"
+                  << "2. Показать транзакции\n"
+                  << "3. Добавить клиента\n"
+                  << "4. Совершить транзакцию\n"
+                  << "5. Сохранить данные\n"
+                  << "0. Выход\n"
+                  << "Выбор: ";
         std::cin >> choice;
 
         if (choice == 1) {
+            std::cout << "\n📋 Список клиентов:\n";
+            for (auto& [id, client] : clients.getAllClients()) {
+                std::cout << id << " - " << client->getName() << " [" << client->getType()
+                          << "] Баланс: " << client->getTotalBalance() << "\n";
+            }
+        } else if (choice == 2) {
+            std::cout << "\n📊 Список транзакций:\n";
+            for (auto tx : txList.getAllTransactions()) {
+                std::cout << "🔁 ID: " << tx->getId()
+                          << " | От: " << tx->getSenderWalletId()
+                          << " | Кому: " << tx->getReceiverWalletId()
+                          << " | Сумма: " << tx->getAmount()
+                          << " | Комиссия: " << tx->getFee() << "\n";
+            }
+        } else if (choice == 3) {
             std::string id, name, type;
             double balance;
-            std::cout << "ID клиента: "; std::cin >> id;
-            std::cout << "Имя клиента: "; std::cin >> name;
-            std::cout << "Тип (Standard/Gold/Platinum): "; std::cin >> type;
-            std::cout << "Начальный баланс: "; std::cin >> balance;
+
+            std::cout << "Введите ID клиента: ";
+            std::cin >> id;
+            std::cout << "Введите имя: ";
+            std::cin >> name;
+            std::cout << "Введите тип клиента (Standard, Gold, Platinum): ";
+            std::cin >> type;
+            std::cout << "Введите стартовый баланс: ";
+            std::cin >> balance;
 
             Client* client = nullptr;
             if (type == "Standard")
-                client = new StandardClient(id, name, balance);
+                client = new StandardClient(id, name);
             else if (type == "Gold")
-                client = new GoldClient(id, name, balance);
+                client = new GoldClient(id, name);
             else if (type == "Platinum")
-                client = new PlatinumClient(id, name, balance);
+                client = new PlatinumClient(id, name);
             else {
-                std::cout << "❌ Неверный тип клиента.\n";
+                std::cout << "❌ Неизвестный тип клиента.\n";
                 continue;
             }
 
+            Wallet* wallet = new Wallet("W_" + id, id, balance); // ✅ ПРАВИЛЬНО
+            client->addWallet(wallet);
             clients.addClient(client);
-            clients.saveToFile(clientFile);
-            std::cout << "✅ Клиент создан.\n";
-        }
-
-        else if (choice == 2) {
-            std::string txId, fromId, toId;
+            std::cout << "✅ Клиент добавлен.\n";
+        } else if (choice == 4) {
+            std::string txId, from, to;
             double amount;
-            std::cout << "ID транзакции: "; std::cin >> txId;
-            std::cout << "Отправитель (ID): "; std::cin >> fromId;
-            std::cout << "Получатель (ID): "; std::cin >> toId;
-            std::cout << "Сумма: "; std::cin >> amount;
 
-            Client* sender = clients.findClientByWalletId(fromId);
-            Client* receiver = clients.findClientByWalletId(toId);
-
-            if (!sender || !receiver) {
-                std::cout << "❌ Клиент не найден.\n";
-                continue;
+            while (true) {
+                std::cout << "Введите ID транзакции: ";
+                std::cin >> txId;
+                if (!isValidTransactionId(txId) || transactionExists(txList, txId)) {
+                    std::cout << "❌ Неверный ID транзакции или уже существует.\n";
+                } else break;
             }
 
-            double fee = sender->calculateCommission(amount);
-            double total = amount + fee;
-
-            if (sender->getBalance() < total) {
-                std::cout << "❌ Недостаточно средств. Требуется " << total << "\n";
-                continue;
+            Wallet* sender = nullptr;
+            while (!sender) {
+                std::cout << "ID отправителя (например W_C001): ";
+                std::cin >> from;
+                sender = clients.findWalletById(from);
+                if (!sender)
+                    std::cout << "❌ Кошелёк отправителя не найден. Повторите ввод.\n";
             }
 
-            if (amount > sender->getMaxTransactionLimit()) {
-                std::cout << "❌ Превышен лимит транзакции.\n";
-                continue;
+            Wallet* receiver = nullptr;
+            while (!receiver) {
+                std::cout << "ID получателя (например W_C002): ";
+                std::cin >> to;
+                receiver = clients.findWalletById(to);
+                if (!receiver)
+                    std::cout << "❌ Кошелёк получателя не найден. Повторите ввод.\n";
             }
 
-            sender->setBalance(sender->getBalance() - total);
-            receiver->setBalance(receiver->getBalance() + amount);
+            Client* senderClient = clients.findClientByWalletId(from);
+            double maxLimit = senderClient->getMaxTransactionLimit();
+            double fee = 0.0;
 
-            Transaction* tx = new Transaction(txId, fromId, toId, amount, fee);
-            txList.addTransaction(tx);
+            while (true) {
+                std::cout << "Сумма перевода: ";
+                std::cin >> amount;
+                fee = senderClient->calculateCommission(amount);
 
-            clients.saveToFile(clientFile);
-            txList.saveToFile(txFile);
-
-            std::cout << "✅ Транзакция завершена.\n";
-        }
-
-        else if (choice == 3) {
-            for (const auto& [id, client] : clients.getAllClients()) {
-                std::cout << "[" << id << "] " << client->getName()
-                          << " (" << client->getType() << ") — Баланс: "
-                          << client->getBalance() << "\n";
+                if (amount <= 0) {
+                    std::cout << "❌ Сумма должна быть положительной.\n";
+                } else if (amount > maxLimit) {
+                    std::cout << "❌ Превышен лимит (" << maxLimit << ").\n";
+                } else if (sender->getBalance() < amount + fee) {
+                    std::cout << "❌ Недостаточно средств у отправителя (учитывая комиссию " << fee << ").\n";
+                } else break;
             }
+
+            sender->decreaseBalance(amount + fee);
+            receiver->increaseBalance(amount);
+            txList.addTransaction(new Transaction(txId, from, to, amount, fee));
+            std::cout << "✅ Транзакция успешно проведена!\n";
+        } else if (choice == 5) {
+            saveTransactions("Blockchain_transactions.txt", txList);
+            clients.saveToFile("Clients.txt");
+            std::cout << "✅ Данные сохранены.\n";
         }
 
-        else if (choice == 4) {
-            txList.displayAll();
-        }
-
-        else if (choice == 5) {
-            break;
-        }
-
-        else {
-            std::cout << "❌ Неизвестная команда\n";
-        }
-    }
+    } while (choice != 0);
 
     return 0;
 }

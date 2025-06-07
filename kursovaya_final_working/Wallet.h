@@ -2,21 +2,22 @@
 #define WALLET_H
 
 #include "Entity.h"
-#include <string>
 
 class Wallet : public Entity {
-private:
     double balance;
     std::string ownerId;
 
 public:
-    Wallet(const std::string& id, double balance, const std::string& ownerId);
+    Wallet(const std::string& id, const std::string& ownerId, double balance);
 
     double getBalance() const;
-    void setBalance(double amount);
+    void deposit(double amount);
+    void withdraw(double amount);
+
     void increaseBalance(double amount);
     void decreaseBalance(double amount);
-    const std::string& getOwnerId() const;
+
+    std::string getId() const override;
 };
 
 #endif

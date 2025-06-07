@@ -1,14 +1,19 @@
 #include "Wallet.h"
 
-Wallet::Wallet(const std::string& id, double balance, const std::string& ownerId)
+Wallet::Wallet(const std::string& id, const std::string& ownerId, double balance)
     : Entity(id), balance(balance), ownerId(ownerId) {}
+
 
 double Wallet::getBalance() const {
     return balance;
 }
 
-void Wallet::setBalance(double amount) {
-    balance = amount;
+void Wallet::deposit(double amount) {
+    balance += amount;
+}
+
+void Wallet::withdraw(double amount) {
+    balance -= amount;
 }
 
 void Wallet::increaseBalance(double amount) {
@@ -19,6 +24,6 @@ void Wallet::decreaseBalance(double amount) {
     balance -= amount;
 }
 
-const std::string& Wallet::getOwnerId() const {
-    return ownerId;
+std::string Wallet::getId() const {
+    return id;
 }

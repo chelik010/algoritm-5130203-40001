@@ -1,3 +1,5 @@
-C001 Алексей Standard 900
-C002 Мария Gold 5100
-C003 Иван Platinum 10000
+C004 Эрмол Standard W_C004 300
+C666 Arthur_vor Platinum W_C666 1000
+С001 Сашка Platinum W_С001 4975
+С002 Сашка Platinum W_С002 10000
+С003 Лидусик Gold W_С003 5500
